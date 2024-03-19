@@ -4,7 +4,7 @@ selectors <- function(data, prefix, columns, multiple = TRUE, default = list()) 
     if (col %in% names(default)) {
       x <- default[[col]]
     } else {
-      x <- choic(col)
+      x <- choic(col)[1]
       if (!multiple) {
         x <- first(x)
       }

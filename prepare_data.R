@@ -108,7 +108,7 @@ data$time_distribution <- tibble(covariate = c("age", "prior_observation", "futu
       inner_join(data$cohort_count %>% select(cdm_name, cohort_definition_id, cohort_name)) %>%
       select(-cohort_definition_id) %>%
       mutate(across(tidyr::everything(), ~ as.character(.x))) %>%
-      pivot_longer(cols = to_pivot, values_to = "estimate_value") %>%
+      pivot_longer(cols = dplyr::all_of(to_pivot), values_to = "estimate_value") %>%
       mutate(
         estimate_type = case_when(
           grepl("Min", name) ~ "min",
@@ -124,6 +124,23 @@ data$time_distribution <- tibble(covariate = c("age", "prior_observation", "futu
   ) %>%
   select(cdm_name, cohort_name, sex, covariate, estimate_type, estimate_value)
 # LSC
+process_columns <- function(df) {
+  df %>%
+    splitAdditional() %>%
+    distinct() %>%
+    mutate(
+      estimate_name = paste0("matched_", estimate_name),
+      estimate = as.numeric(estimate_value)
+    ) %>%
+    select(-estimate_value, -estimate_name, -estimate, -estimate_type) %>%
+    summarise(across(everything(), ~n_distinct(.) > 1)) %>%
+    select(where(~.)) %>%
+    names()
+}
+
+non_numeric_cols <- process_columns(data$lsc_matched)
+non_numeric_cols_sample <- process_columns(data$lsc_sample)
+
 data$lsc_table <- data$lsc_matched %>% 
   splitAdditional() %>%
   distinct() %>%
@@ -131,8 +148,7 @@ data$lsc_table <- data$lsc_matched %>%
     estimate_name = paste0("matched_", estimate_name),
     estimate = as.numeric(estimate_value)
   ) %>% 
-  pivot_wider(id_cols = c("variable_name", "variable_level", "group_level",
-                          "table_name", "concept"),
+  pivot_wider(id_cols = dplyr::all_of(non_numeric_cols),
     names_from = estimate_name, values_from = estimate) %>% 
   left_join(
     data$lsc_sample %>% 
@@ -142,7 +158,8 @@ data$lsc_table <- data$lsc_matched %>%
         estimate_name = paste0("sample_", estimate_name),
         estimate = as.numeric(estimate_value)
       ) %>% 
-      pivot_wider(names_from = estimate_name, values_from = estimate)) %>% 
+      pivot_wider(id_cols = dplyr::all_of(non_numeric_cols_sample),
+                  names_from = estimate_name, values_from = estimate)) %>% 
   mutate(
     difference_count = (sample_count - matched_count)/matched_count,
     difference_percentage = (sample_percentage - matched_percentage)/matched_percentage
