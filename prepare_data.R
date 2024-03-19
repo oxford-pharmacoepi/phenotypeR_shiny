@@ -7,6 +7,7 @@ library(dplyr)
 library(here)
 library(readr)
 library(fresh)
+library(visOmopResults)
 # Define result names
 result_names <- c("cohort_definitions", "cohort_count", "code_counts", "cohort_overlap", 
                   "age_distribution", "time_distribution", "prevalence", "incidence", 
@@ -30,7 +31,9 @@ for (file_path in result_files) {
     if (grepl(resName, file_name)) {
       # Load CSV file
       csv_data <- read_csv(file_path)
-      
+      if (resName=="snapshot") {
+        csv_data <- csv_data |> mutate(cdm_version=as.character(cdm_version))
+      }
       # If data list already has data for this resName, append new data; otherwise, assign it
       if (!is.null(data[[resName]])) {
         data[[resName]] <- bind_rows(data[[resName]], csv_data)
