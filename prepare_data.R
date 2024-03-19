@@ -124,33 +124,22 @@ data$time_distribution <- tibble(covariate = c("age", "prior_observation", "futu
   ) %>%
   select(cdm_name, cohort_name, sex, covariate, estimate_type, estimate_value)
 # LSC
-non_numeric_cols <- data$lsc_matched %>% 
-  splitAdditional() %>%
-  distinct() %>%
-  mutate(
-    estimate_name = paste0("matched_", estimate_name),
-    estimate = as.numeric(estimate_value)
-  )  %>%
-  dplyr::select(-c(
-    "estimate_value", "estimate_name", "estimate", "estimate_type"
-  )) %>%
-  dplyr::summarise(dplyr::across(dplyr::everything(), ~ dplyr::n_distinct(.) > 1)) %>%
-  dplyr::select(dplyr::where(~.)) %>%
-  names()
+process_columns <- function(df) {
+  df %>%
+    splitAdditional() %>%
+    distinct() %>%
+    mutate(
+      estimate_name = paste0("matched_", estimate_name),
+      estimate = as.numeric(estimate_value)
+    ) %>%
+    select(-estimate_value, -estimate_name, -estimate, -estimate_type) %>%
+    summarise(across(everything(), ~n_distinct(.) > 1)) %>%
+    select(where(~.)) %>%
+    names()
+}
 
-non_numeric_cols_sample <- data$lsc_sample %>% 
-  splitAdditional() %>%
-  distinct() %>%
-  mutate(
-    estimate_name = paste0("matched_", estimate_name),
-    estimate = as.numeric(estimate_value)
-  )  %>%
-  dplyr::select(-c(
-    "estimate_value", "estimate_name", "estimate", "estimate_type"
-  )) %>%
-  dplyr::summarise(dplyr::across(dplyr::everything(), ~ dplyr::n_distinct(.) > 1)) %>%
-  dplyr::select(dplyr::where(~.)) %>%
-  names()
+non_numeric_cols <- process_columns(data$lsc_matched)
+non_numeric_cols_sample <- process_columns(data$lsc_sample)
 
 data$lsc_table <- data$lsc_matched %>% 
   splitAdditional() %>%
