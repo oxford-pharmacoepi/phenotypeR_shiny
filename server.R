@@ -343,9 +343,12 @@ server <- function(input, output, session) {
   # LSC  ----
   output$lsc_table <- renderDataTable({
     filterData(data$lsc_table, "lsc", input) %>% 
+      mutate(sample_percentage = sample_percentage/100, matched_percentage = matched_percentage/100) %>%
       niceColumnNames() %>% 
-      select(input$select_lsc_columns)
-  })
+      select(input$select_lsc_columns) %>% datatable() %>% formatPercentage(c('Matched percentage','Sample percentage',
+                                                                              'Difference percentage', 'Difference count'), 1)
+  }) 
+  
   output$lsc_plot <- renderPlotly({
     table <- filterData(data$lsc_table, "lsc", input) %>% 
       mutate(label = paste0(concept_name, "; ", window))
