@@ -124,6 +124,18 @@ data$time_distribution <- tibble(covariate = c("age", "prior_observation", "futu
   ) %>%
   select(cdm_name, cohort_name, sex, covariate, estimate_type, estimate_value)
 # LSC
+
+non_numeric_cols <- data$lsc_matched %>% 
+  splitAdditional() %>%
+  distinct() %>%
+  dplyr::select(-c(
+    "estimate_value", "estimate_name"
+  )) %>%
+  dplyr::summarise(dplyr::across(dplyr::everything(), ~ dplyr::n_distinct(.) > 1)) %>%
+  dplyr::select(dplyr::where(~.)) %>%
+  names()
+
+
 data$lsc_table <- data$lsc_matched %>% 
   splitAdditional() %>%
   distinct() %>%
@@ -131,8 +143,7 @@ data$lsc_table <- data$lsc_matched %>%
     estimate_name = paste0("matched_", estimate_name),
     estimate = as.numeric(estimate_value)
   ) %>% 
-  pivot_wider(id_cols = c("variable_name", "variable_level", "group_level",
-                          "table_name", "concept"),
+  pivot_wider(
     names_from = estimate_name, values_from = estimate) %>% 
   left_join(
     data$lsc_sample %>% 
