@@ -1,31 +1,51 @@
 # Get data ----
 # All potential outputs
+library(dplyr)
+library(here)
+library(tidyr)
+library(dplyr)
+library(here)
+library(readr)
+library(fresh)
+library(visOmopResults)
+# Define result names
 result_names <- c("cohort_definitions", "cohort_count", "code_counts", "cohort_overlap", 
                   "age_distribution", "time_distribution", "prevalence", "incidence", 
                   "index_events", "lsc_sample", "lsc_matched", "lsc_difference", "log",
                   "snapshot")
 
+dataFolder <- "data"
 # Result files
-result_files <- list.files(path = here(dataFolder), pattern = ".RData")
+result_files <- list.files(path = here(dataFolder), pattern = "\\.csv$", full.names = TRUE)
 
-# Read files and join equal outputs
-data <- vector("list", length(result_names)) |> setNames(result_names)
-settings <- NULL
-for (file in result_files) {
-  x <- load(here(dataFolder, file))
-  settings <- settings %>%  union_all(bind_rows(input))
+# Initialize data list with result_names
+data <- vector("list", length(result_names))
+names(data) <- result_names
+
+# Loop through each file
+for (file_path in result_files) {
+  file_name <- tools::file_path_sans_ext(basename(file_path))
+  
+  # Check which result_name is in file_name
   for (resName in result_names) {
-    if (!is.null(output[[resName]])) {
-      if (nrow(output[[resName]]) > 0) {
-        eval(parse(text = paste0("data$", resName, " <- data$", resName, " %>% union_all(output$", resName, ")")))
-        
+    if (grepl(resName, file_name)) {
+      # Load CSV file
+      csv_data <- read_csv(file_path)
+      if (resName=="snapshot") {
+        csv_data <- csv_data |> mutate(cdm_version=as.character(cdm_version))
       }
+      # If data list already has data for this resName, append new data; otherwise, assign it
+      if (!is.null(data[[resName]])) {
+        data[[resName]] <- bind_rows(data[[resName]], csv_data)
+      } else {
+        data[[resName]] <- csv_data
+      }
+      
+      # Break the loop once a match is found and assigned
+      break
     }
   }
-  rm(list = x)
 }
-rm(x)
-
 # Tranform data for shiny ----
 # Orphan code counts
 data$orphan_counts <- data$code_counts %>% 
@@ -54,6 +74,8 @@ data$index_events <- data$index_events %>%
          source_concept_name, source_concept_id, domain_id,  
          cdm_name, `Record count`, `Person count`)
 # Cohort overlap
+
+if(data$cohort_overlap %>% dplyr::tally() != 0){
 data$cohort_overlap <- data$cohort_overlap %>%
   ungroup() %>%
   inner_join(data$cohort_count %>%
@@ -70,7 +92,7 @@ data$cohort_overlap <- data$cohort_overlap %>%
              by = c("cdm_name", "cohort_definition_id_y")) %>%
   mutate(
     intersect_counts = as.integer(intersect_count)) %>%
-  select(-intersect_count)
+  select(-intersect_count)}
 # # Age distribution
 data$age_distribution <- data$age_distribution %>%
   ungroup() %>%
@@ -96,31 +118,37 @@ data$time_distribution <- tibble(covariate = c("age", "prior_observation", "futu
           grepl("Sd", name) ~ "sd",
         ),
         covariate = gsub("_Min|_Max|_Median|_Sd|_Mean", "", name),
-        estimate_value = niceNum(estimate_value, 3)
+        estimate_value = round(as.numeric(estimate_value), 3)
       ) %>%
       select(-name)
   ) %>%
   select(cdm_name, cohort_name, sex, covariate, estimate_type, estimate_value)
 # LSC
 data$lsc_table <- data$lsc_matched %>% 
+  splitAdditional() %>%
+  distinct() %>%
   mutate(
-    estimate_type = paste0("matched_", estimate_type),
-    estimate = as.numeric(estimate)
+    estimate_name = paste0("matched_", estimate_name),
+    estimate = as.numeric(estimate_value)
   ) %>% 
-  pivot_wider(names_from = estimate_type, values_from = estimate) %>% 
+  pivot_wider(id_cols = c("variable_name", "variable_level", "group_level",
+                          "table_name", "concept"),
+    names_from = estimate_name, values_from = estimate) %>% 
   left_join(
     data$lsc_sample %>% 
+      splitAdditional() %>%
+      distinct() %>%
       mutate(
-        estimate_type = paste0("sample_", estimate_type),
-        estimate = as.numeric(estimate)
+        estimate_name = paste0("sample_", estimate_name),
+        estimate = as.numeric(estimate_value)
       ) %>% 
-      pivot_wider(names_from = estimate_type, values_from = estimate)) %>% 
+      pivot_wider(names_from = estimate_name, values_from = estimate)) %>% 
   mutate(
     difference_count = (sample_count - matched_count)/matched_count,
     difference_percentage = (sample_percentage - matched_percentage)/matched_percentage
   ) %>% 
   select(
-    cdm_name, cohort_name = group_level, table_name, concept, concept_name = variable, 
+    cdm_name, cohort_name = group_level, concept_name = variable_name, table_name, concept,
     window = variable_level, matched_count, matched_percentage, sample_count, sample_percentage, 
     difference_count, difference_percentage
   )

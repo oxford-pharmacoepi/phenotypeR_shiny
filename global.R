@@ -23,7 +23,7 @@ library(bit)
 library(bit64)
 library(rsconnect)
 library(packrat)
-
+library(visOmopResults)
 
 # Variables
 dataFolder <- "data"
