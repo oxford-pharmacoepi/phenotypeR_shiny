@@ -189,7 +189,8 @@ server <- function(input, output, session) {
       ordering = FALSE, 
       paging = FALSE
     )
-  )
+  ) %>% formatPercentage(c('Prevalence','Prevalence 95ci lower',
+                      'Prevalence 95ci upper', 'Prevalence'), 3)
   })
   output$prevalence_plot <- renderPlotly({
     table <- filterData(data$prevalence, "prevalence", input) 
@@ -206,7 +207,7 @@ server <- function(input, output, session) {
           geom_point(position=position_dodge(width=1))+
           facet_wrap(vars(facet_var),nrow = 2)+
           scale_y_continuous(
-            limits = c(0, NA)
+            limits = c(0, NA), labels = scales::percent
           ) +
           theme_bw()
       } else{
@@ -214,7 +215,7 @@ server <- function(input, output, session) {
           ggplot(aes_string(x= "prevalence_start_date", y="prevalence")) +
           geom_point(position=position_dodge(width=1))+
           scale_y_continuous(
-            limits = c(0, NA)
+            limits = c(0, NA), labels = scales::percent
           ) +
           theme_bw()        
       }
@@ -246,7 +247,7 @@ server <- function(input, output, session) {
             geom_point(position=position_dodge(width=1))+
             facet_wrap(vars(facet_var),ncol = 2)+  
             scale_y_continuous(
-              limits = c(0, NA)
+              limits = c(0, NA), labels = scales::percent
             )  +
             theme_bw()
         }
@@ -271,7 +272,8 @@ server <- function(input, output, session) {
         ordering = FALSE, 
         paging = FALSE
       )
-    )
+    )  %>% formatRound(c('Person years','Incidence 100000 pys',
+                         'Incidence 100000 pys 95ci lower', 'Incidence 100000 pys 95ci upper'), 1)
   })
   output$incidence_plot <- renderPlotly({
     
