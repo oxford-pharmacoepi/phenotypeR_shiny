@@ -148,7 +148,7 @@ data$lsc_table <- data$lsc_matched %>%
     estimate_name = paste0("matched_", estimate_name),
     estimate = as.numeric(estimate_value)
   ) %>% 
-  pivot_wider(id_cols = dplyr::all_of(non_numeric_cols),
+  pivot_wider(id_cols = dplyr::all_of(c(non_numeric_cols,"cdm_name")),
     names_from = estimate_name, values_from = estimate) %>% 
   left_join(
     data$lsc_sample %>% 
@@ -158,7 +158,7 @@ data$lsc_table <- data$lsc_matched %>%
         estimate_name = paste0("sample_", estimate_name),
         estimate = as.numeric(estimate_value)
       ) %>% 
-      pivot_wider(id_cols = dplyr::all_of(non_numeric_cols_sample),
+      pivot_wider(id_cols = dplyr::all_of(c(non_numeric_cols_sample,"cdm_name")),
                   names_from = estimate_name, values_from = estimate)) %>% 
   mutate(
     difference_count = (sample_count - matched_count)/matched_count,
