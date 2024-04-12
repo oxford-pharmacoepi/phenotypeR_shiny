@@ -65,7 +65,7 @@ formatMarkdown <- function(x) {
   purrr::map(lines, ~ getFormat(.))
 }
 formatLog <- function(x) {
-  lines <- strsplit(x, "\n") |> unlist()
+  lines <- strsplit(x |>  str_replace_all(": :", ":") , "\n") |> unlist() 
   getFormat <- function(line) {
     line <- strsplit(line, ":") |> unlist()
     return(list(h4(line[1]), h5(paste0(gsub(" elapsed", "", line[2])))))
