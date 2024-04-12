@@ -1,5 +1,6 @@
 # Shiny utils ----
 selectors <- function(data, prefix, columns, multiple = TRUE, default = list()) {
+  if(!is.null(data)) {
   def <- function(col) {
     if (col %in% names(default)) {
       x <- default[[col]]
@@ -14,6 +15,8 @@ selectors <- function(data, prefix, columns, multiple = TRUE, default = list()) 
   choic <- function(col) {
     data[[col]] %>% unique() %>% sort()
   }
+  
+ 
   purrr::map(columns, ~ pickerInput(
     inputId = paste0(prefix, "_", .),
     label = stringr::str_to_sentence(gsub("_", " ", .)),
@@ -23,6 +26,7 @@ selectors <- function(data, prefix, columns, multiple = TRUE, default = list()) 
     multiple = multiple,
     inline = TRUE
   ))
+}
 }
 
 plotSelectors <- function(prefix, choices, multiple = TRUE, default = list(), type = c("color", "facet_by")) {

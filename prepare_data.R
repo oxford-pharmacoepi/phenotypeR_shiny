@@ -48,6 +48,7 @@ for (file_path in result_files) {
 }
 # Tranform data for shiny ----
 # Orphan code counts
+if(!is.null(data$orphan_counts) ){
 data$orphan_counts <- data$code_counts %>% 
   filter(strata_name == "recomendation") %>% 
   ungroup()  %>% 
@@ -57,7 +58,9 @@ data$orphan_counts <- data$code_counts %>%
   pivot_wider(names_from = variable_name, values_from = estimate_value) %>% 
   select("cdm_name", "cohort", "relationship_id",
          "standard_concept_id", "standard_concept_name", "Record count", "Person count")
+}
 # Code counts
+if(!is.null(data$code_counts) ){
 data$code_counts <- data$code_counts %>% 
   filter(strata_name == "original_codes") %>% 
   ungroup()  %>% 
@@ -67,14 +70,17 @@ data$code_counts <- data$code_counts %>%
   pivot_wider(names_from = variable_name, values_from = estimate_value) %>% 
   select("cdm_name", "cohort", 
          "standard_concept_id", "standard_concept_name", "Record count", "Person count")
+}
 # Index events
+if(!is.null(data$index_events) ){
 data$index_events <- data$index_events %>% 
   pivot_wider(names_from = variable_name, values_from = estimate) %>% 
   select(cdm_name, cohort_name, codelist_name, group_name, group_level, standard_concept_id, standard_concept_name, 
          source_concept_name, source_concept_id, domain_id,  
          cdm_name, `Record count`, `Person count`)
+}
 # Cohort overlap
-
+if(!is.null(data$cohort_overlap) ){
 if(data$cohort_overlap %>% dplyr::tally() != 0){
 data$cohort_overlap <- data$cohort_overlap %>%
   ungroup() %>%
@@ -93,12 +99,16 @@ data$cohort_overlap <- data$cohort_overlap %>%
   mutate(
     intersect_counts = as.integer(intersect_count)) %>%
   select(-intersect_count)}
+}
 # # Age distribution
+if(!is.null(data$age_distribution) ){
 data$age_distribution <- data$age_distribution %>%
   ungroup() %>%
   inner_join(data$cohort_count %>% select(cdm_name, cohort_definition_id, cohort_name)) %>%
   select(-cohort_definition_id)
+}
 # Time distribution
+if(!is.null(data$time_distribution) ){
 to_pivot <- colnames(data$time_distribution)[!colnames(data$time_distribution) %in%
                                                c("sex", "cohort_name", "cdm_name", "cohort_definition_id")]
 data$time_distribution <- tibble(covariate = c("age", "prior_observation", "future_observation")) %>%
@@ -123,7 +133,10 @@ data$time_distribution <- tibble(covariate = c("age", "prior_observation", "futu
       select(-name)
   ) %>%
   select(cdm_name, cohort_name, sex, covariate, estimate_type, estimate_value)
+}
+
 # LSC
+if(!is.null(data$lsc_matched) ){
 process_columns <- function(df) {
   df %>%
     splitAdditional() %>%
@@ -169,26 +182,4 @@ data$lsc_table <- data$lsc_matched %>%
     window = variable_level, matched_count, matched_percentage, sample_count, sample_percentage, 
     difference_count, difference_percentage
   )
-  
-# Shiny theme ----
-DUtheme <- create_theme(
-  adminlte_color(
-    light_blue = "#0c0e0c" 
-  ),
-  adminlte_sidebar(
-    # width = "400px",
-    dark_bg = "#78B7C5",
-    dark_hover_bg = "#3B9AB2",
-    dark_color = "white"
-  ), 
-  adminlte_global(
-    content_bg = "#eaebea" 
-  ),
-  adminlte_vars(
-    border_color = "#112446",
-    active_link_hover_bg = "#FFF",
-    active_link_hover_color = "#112446",
-    active_link_hover_border_color = "#112446",
-    link_hover_border_color = "#112446"
-  )
-)
+}

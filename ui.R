@@ -7,6 +7,10 @@ ui <- dashboardPage(
         text = "Background",
         tabName = "background"
       ),
+       menuItem(
+         text = "Study selection",
+         tabName = "study_select"
+       ),
       # menuItem(
       #   text = "Databases",
       #   tabName = "cdm_snapshot"
@@ -69,6 +73,12 @@ ui <- dashboardPage(
       # background  ------
       tabItem(
         tabName = "background",
+        h3("PhenotypeR"),
+        h5("https://github.com/oxford-pharmacoepi/phenotypeR_project"),
+      ),
+      # sudy selector  ------
+      tabItem(
+        tabName = "study_select",
         h3("PhenotypeR"),
         h5("https://github.com/oxford-pharmacoepi/phenotypeR_project"),
       ),
