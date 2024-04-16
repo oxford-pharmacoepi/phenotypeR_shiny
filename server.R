@@ -21,6 +21,15 @@ server <- function(input, output, session) {
       options = list(delay = list(show = 800, hide = 100), trigger = "hover")
     )
   })
+  # snapshot
+  output$cdm_snapshot_tidy <- renderDataTable({
+    datatable(
+      data$snapshot,
+      rownames = FALSE,
+      extensions = "Buttons",
+      options = list(scrollX = TRUE, scrollCollapse = TRUE)
+    )
+  })
   # Cohort counts ----
   output$tidy_counts <- renderDataTable({
     datatable(
@@ -62,8 +71,9 @@ server <- function(input, output, session) {
   })
   # Index date ----
   getIndexDate <- reactive({
-    filterData(data$index_events, "index", input) %>% 
-      niceColumnNames() %>% 
+    data$index_events %>% 
+      filterData("index_events", input) %>%
+      niceColumnNames() %>%
       select(input$select_index_columns)
   })
   output$index_date_tidy <- renderDataTable({
@@ -76,7 +86,8 @@ server <- function(input, output, session) {
   })
   # Overlap ----
   getOverlapTable <- reactive({
-    filterData(data$cohort_overlap, "overlap", input) %>% 
+    data$cohort_overlap %>% 
+    filterData("overlap", input) %>% 
       mutate(
         total_counts = subject_counts_x + subject_counts_y,
         intersect_percentage = intersect_counts*2/total_counts * 100,
@@ -204,6 +215,7 @@ server <- function(input, output, session) {
                 c(all_of(input$plot_prevalence_facet_by)), remove = FALSE, sep = "; ") %>% 
           ggplot(aes_string(x= "prevalence_start_date", y="prevalence")) +
           geom_point(position=position_dodge(width=1))+
+          geom_line() +
           facet_wrap(vars(facet_var),nrow = 2)+
           scale_y_continuous(
             limits = c(0, NA)
@@ -212,6 +224,7 @@ server <- function(input, output, session) {
       } else{
         p<-table %>% 
           ggplot(aes_string(x= "prevalence_start_date", y="prevalence")) +
+          geom_line() +
           geom_point(position=position_dodge(width=1))+
           scale_y_continuous(
             limits = c(0, NA)
@@ -230,6 +243,7 @@ server <- function(input, output, session) {
                             group="Group",
                             colour="Group")) +
           geom_point(position=position_dodge(width=1))+
+          geom_line() +
           theme_bw()
       }
       
@@ -244,6 +258,7 @@ server <- function(input, output, session) {
                               group="Group",
                               colour="Group")) +
             geom_point(position=position_dodge(width=1))+
+            geom_line() +
             facet_wrap(vars(facet_var),ncol = 2)+  
             scale_y_continuous(
               limits = c(0, NA)
@@ -287,6 +302,7 @@ server <- function(input, output, session) {
                 c(all_of(input$plot_incidence_facet_by)), remove = FALSE, sep = "; ") %>% 
           ggplot(aes_string(x= "incidence_start_date", y="incidence_100000_pys")) +
           geom_point(position=position_dodge(width=1))+
+          geom_line() +
           facet_wrap(vars(facet_var),nrow = 2)+
           scale_y_continuous(
             limits = c(0, NA)
@@ -296,6 +312,7 @@ server <- function(input, output, session) {
         p<-table %>% 
           ggplot(aes_string(x= "incidence_start_date", y="incidence_100000_pys")) +
           geom_point(position=position_dodge(width=1))+
+          geom_line() +
           scale_y_continuous(
             limits = c(0, NA)
           ) +
@@ -314,6 +331,7 @@ server <- function(input, output, session) {
                             group="Group",
                             colour="Group")) +
           geom_point(position=position_dodge(width=1))+
+          geom_line() +
           theme_bw()
       }
       
@@ -328,6 +346,7 @@ server <- function(input, output, session) {
                               group="Group",
                               colour="Group")) +
             geom_point(position=position_dodge(width=1))+
+            geom_line() +
             facet_wrap(vars(facet_var),ncol = 2)+  
             scale_y_continuous(
               limits = c(0, NA)
