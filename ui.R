@@ -1,3 +1,26 @@
+# Shiny theme ----
+DUtheme <- create_theme(
+  adminlte_color(
+    light_blue = "#0c0e0c" 
+  ),
+  adminlte_sidebar(
+    # width = "400px",
+    dark_bg = "#78B7C5",
+    dark_hover_bg = "#3B9AB2",
+    dark_color = "white"
+  ), 
+  adminlte_global(
+    content_bg = "#eaebea" 
+  ),
+  adminlte_vars(
+    border_color = "#112446",
+    active_link_hover_bg = "#FFF",
+    active_link_hover_color = "#112446",
+    active_link_hover_border_color = "#112446",
+    link_hover_border_color = "#112446"
+  )
+)
+
 ui <- dashboardPage(
   dashboardHeader(title = "PhenotypeR"),
   ## menu ----
@@ -7,14 +30,14 @@ ui <- dashboardPage(
         text = "Background",
         tabName = "background"
       ),
-       menuItem(
-         text = "Study selection",
-         tabName = "study_select"
-       ),
-      # menuItem(
-      #   text = "Databases",
-      #   tabName = "cdm_snapshot"
-      # ),
+       # menuItem(
+       #   text = "Study selection",
+       #   tabName = "study_select"
+       # ),
+      menuItem(
+        text = "Databases",
+        tabName = "cdm_snapshot"
+      ),
       menuItem(
         text = "Cohorts",
         tabName = "cohorts"
@@ -83,36 +106,35 @@ ui <- dashboardPage(
         h5("https://github.com/oxford-pharmacoepi/phenotypeR_project"),
       ),
       # cdm snapshot ------
-      # tabItem(
-      #   tabName = "cdm_snapshot",
-      #   h4("Information about the databases."),
-        # selectors(cdmSnapshot, "cdm_snapshot", c("cdm_name")),
-        # downloadButton("cdm_snapshot_tidy_download_word", "Download word"),
-        # downloadButton("cdm_snapshot_tidy_download_csv", "Download csv"),
-        # DTOutput("cdm_snapshot_tidy") %>% withSpinner()
-      # ),
+      tabItem(
+        tabName = "cdm_snapshot",
+        h4("Information about the databases."),
+      downloadButton("cdm_snapshot_tidy_download_word", "Download word"),
+      downloadButton("cdm_snapshot_tidy_download_csv", "Download csv"),
+      DTOutput("cdm_snapshot_tidy") %>% withSpinner()
+      ),
       # cohort definition ------
       tabItem(
         tabName = "cohorts",
         # h4("Cohort definitions."),
         selectors(data$cohort_definitions, "definitions", c("cdm_name", "cohort_name"), multiple = FALSE, default = list()),
-        tabsetPanel(
-          type = "tabs",
-          tabPanel(
-            "Cohort definition",
+        # tabsetPanel(
+        #   type = "tabs",
+        #   tabPanel(
+            # "Cohort definition",
             uiOutput("markdown")
-          ),
-          tabPanel(
-            "JSON",
-            h4(),
-            rclipboardSetup(),
-            uiOutput("clip"),
-            verbatimTextOutput("verb"),
-          )
+          # ),
+          # tabPanel(
+          #   "JSON",
+          #   h4(),
+          #   rclipboardSetup(),
+          #   uiOutput("clip"),
+          #   verbatimTextOutput("verb"),
+          # )
           # tabPanel(
           #   "Concept sets",
           # )
-        )
+        # )
       ),
       # cohort_counts ----
       tabItem(
@@ -165,25 +187,21 @@ ui <- dashboardPage(
       tabItem(
         tabName = "index",
         selectors(data$index_events, 
-                  "index", 
+                  "index_events", 
                   c("cdm_name", "cohort_name"), 
                   multiple = FALSE, default = list()),
-        selectors(data$index_events, 
-                  "index", 
-                  c("codelist_name",  "domain_id", "group_name"), 
-                  multiple = TRUE, default = list()),
         h5(),
         div(
           style = "display: inline-block;vertical-align:top; width: 150px;",
           pickerInput(
             inputId = "select_index_columns",
             label = "Columns to display",
-            choices = c("Standard concept id", "Standard concept name", "Source concept name", 
-                        "Source concept id", "Domain id", "Codelist name", "Cohort name", 
-                        "Cdm name", "Record count", "Person count"),
-            selected = c("Standard concept id", "Standard concept name", "Source concept id", 
-                         "Source concept name", "Domain id", "Codelist name", "Cohort name", 
-                         "Cdm name", "Record count", "Person count"),
+            choices = c("Cdm name", "Cohort name", "Codelist name", "Domain id",
+                        "Standard concept id", "Standard concept name", "Source concept id", 
+                        "Source concept name", "Record count", "Person count"),
+            selected = c("Cdm name", "Cohort name", "Codelist name", "Domain id",
+                         "Standard concept id", "Standard concept name", "Source concept id", 
+                         "Source concept name", "Record count", "Person count"),
             options = list(
               `actions-box` = TRUE,
               size = 10,
@@ -226,12 +244,12 @@ ui <- dashboardPage(
           tabPanel(
             "Tidy table",
             DTOutput("age_tidy_table")
-          ),
-          tabPanel(
-            "Formatted table",
-            h4(),
-            gt_output("age_format_table")
           )
+          # tabPanel(
+          #   "Formatted table",
+          #   h4(),
+          #   gt_output("age_format_table")
+          # )
         )
       ),
       # time ----
@@ -243,12 +261,12 @@ ui <- dashboardPage(
           tabPanel(
             "Tidy table",
             DTOutput("time_tidy_table")
-          ),
-          tabPanel(
-            "Formatted table",
-            h4(),
-            gt_output("time_format_table")
           )
+          # tabPanel(
+          #   "Formatted table",
+          #   h4(),
+          #   gt_output("time_format_table")
+          # )
         )
       ),
       # prevalence ----
