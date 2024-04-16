@@ -1,5 +1,7 @@
 data/*.csv
+data/*.zip
 data/results_CPRD GOLD 100k/*.csv
 .Rproj.user
 .RData
 .Rhistory
+.secrets

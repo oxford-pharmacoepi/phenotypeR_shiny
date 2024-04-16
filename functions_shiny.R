@@ -1,5 +1,6 @@
 # Shiny utils ----
 selectors <- function(data, prefix, columns, multiple = TRUE, default = list()) {
+  if(!is.null(data)) {
   def <- function(col) {
     if (col %in% names(default)) {
       x <- default[[col]]
@@ -14,6 +15,8 @@ selectors <- function(data, prefix, columns, multiple = TRUE, default = list()) 
   choic <- function(col) {
     data[[col]] %>% unique() %>% sort()
   }
+  
+ 
   purrr::map(columns, ~ pickerInput(
     inputId = paste0(prefix, "_", .),
     label = stringr::str_to_sentence(gsub("_", " ", .)),
@@ -23,6 +26,7 @@ selectors <- function(data, prefix, columns, multiple = TRUE, default = list()) 
     multiple = multiple,
     inline = TRUE
   ))
+}
 }
 
 plotSelectors <- function(prefix, choices, multiple = TRUE, default = list(), type = c("color", "facet_by")) {
@@ -99,7 +103,7 @@ formatMarkdown <- function(x) {
   purrr::map(lines, ~ getFormat(.))
 }
 formatLog <- function(x) {
-  lines <- strsplit(x, "\n") |> unlist()
+  lines <- strsplit(x |>  str_replace_all(": :", ":") , "\n") |> unlist() 
   getFormat <- function(line) {
     line <- strsplit(line, ":") |> unlist()
     return(list(h4(line[1]), h5(paste0(gsub(" elapsed", "", line[2])))))

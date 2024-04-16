@@ -109,8 +109,8 @@ data$time_distribution <- tibble(covariate = c("age", "prior_observation", "futu
   ) %>%
   select(cdm_name, cohort_name, sex, covariate, estimate_type, estimate_value)
 }
-# LSC
-if (!is.null(data$lsc_matched)){
+
+if (!is.null(data$lsc_matched)) {
 process_columns <- function(df) {
   df %>%
     splitAdditional() %>%
@@ -135,7 +135,7 @@ data$lsc_table <- data$lsc_matched %>%
     estimate_name = paste0("matched_", estimate_name),
     estimate = as.numeric(estimate_value)
   ) %>% 
-  pivot_wider(id_cols = dplyr::all_of(non_numeric_cols),
+  pivot_wider(id_cols = dplyr::all_of(c(non_numeric_cols,"cdm_name")),
     names_from = estimate_name, values_from = estimate) %>% 
   left_join(
     data$lsc_sample %>% 
@@ -145,7 +145,7 @@ data$lsc_table <- data$lsc_matched %>%
         estimate_name = paste0("sample_", estimate_name),
         estimate = as.numeric(estimate_value)
       ) %>% 
-      pivot_wider(id_cols = dplyr::all_of(non_numeric_cols_sample),
+      pivot_wider(id_cols = dplyr::all_of(c(non_numeric_cols_sample,"cdm_name")),
                   names_from = estimate_name, values_from = estimate)) %>% 
   mutate(
     difference_count = (sample_count - matched_count)/matched_count,
@@ -157,6 +157,7 @@ data$lsc_table <- data$lsc_matched %>%
     difference_count, difference_percentage
   )
 }
+
 if (!is.null(data$prevalence)) {
   data$prevalence <- data$prevalence %>% 
     mutate(across(all_of(c("prevalence", "prevalence_95CI_lower", "prevalence_95CI_upper")), ~ as.numeric(.x)))

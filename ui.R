@@ -99,6 +99,12 @@ ui <- dashboardPage(
         h3("PhenotypeR"),
         h5("https://github.com/oxford-pharmacoepi/phenotypeR_project"),
       ),
+      # sudy selector  ------
+      tabItem(
+        tabName = "study_select",
+        h3("PhenotypeR"),
+        h5("https://github.com/oxford-pharmacoepi/phenotypeR_project"),
+      ),
       # cdm snapshot ------
       tabItem(
         tabName = "cdm_snapshot",
