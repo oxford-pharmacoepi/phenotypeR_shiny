@@ -48,7 +48,7 @@ for (file_path in result_files) {
 }
 # Tranform data for shiny ----
 # Orphan code counts
-if(!is.null(data$orphan_counts) ){
+if(!is.null(data$code_counts) ){
 data$orphan_counts <- data$code_counts %>% 
   filter(strata_name == "recomendation") %>% 
   ungroup()  %>% 
