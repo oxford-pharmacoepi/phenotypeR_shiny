@@ -43,6 +43,10 @@ source(here("functions_shiny.R"))
 
 # Data
  source(here("prepare_data.R"))
+#### Preprocessing of data - comment line 45 & 47 after data processing and uncomment 48
+# system.time(saveRDS(data,file="data.RDS",compress=T))
+# system.time(  data <- readRDS(file="data.RDS")  )
+
 
 
 # Shiny theme ----
